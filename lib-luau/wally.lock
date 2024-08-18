@@ -3,6 +3,6 @@
 registry = "test"
 
 [[package]]
-name = "tijne/simpoll"
+name = "virtualbutfake/simpoll"
 version = "0.1.0"
 dependencies = []

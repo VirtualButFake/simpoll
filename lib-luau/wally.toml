@@ -1,7 +1,7 @@
 [package]
 name = "virtualbutfake/simpoll"
-description = "A simple bi-directional long polling library"
-version = "0.1.0"
+description = "A bidirectional long-polling library designed for use with Roblox."
+version = "0.1.2"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 

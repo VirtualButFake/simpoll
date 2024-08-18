@@ -12,7 +12,7 @@ subscribeRouter.post("/subscribe", (req, res) => {
             return res.send({ success: false, message: "Timeout" });
         });
 
-        const currentPayload = connection.getPayload();
+        const currentPayload = connection._getPayload();
 
         if (currentPayload) {
             return res.send({
@@ -22,12 +22,12 @@ subscribeRouter.post("/subscribe", (req, res) => {
         } else {
             let sent = false;
 
-            connection.onQueue(() => {
+            connection._onQueue(() => {
                 if (res.headersSent || sent) {
                     return;
                 }
 
-                const payload = connection.getPayload();
+                const payload = connection._getPayload();
 
                 if (!payload) {
                     return null;

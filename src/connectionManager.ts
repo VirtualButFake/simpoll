@@ -2,6 +2,11 @@ import crypto from "crypto";
 
 const CLEANUP_THRESHOLD = 1000 * 60;
 
+type queueItem = {
+    topic: string;
+    payload: string;
+};
+
 export type eventCallback = (id: string, data: string) => void;
 type eventCallbacks = {
     [key: string]: eventCallback[];
@@ -14,19 +19,18 @@ export class Connection {
     lastUpdated: Date = new Date();
 
     private requestCallback: (() => void) | null = null;
-    private currentQueue: string[] = [];
+    private currentQueue: queueItem[] = [];
 
-    constructor(
-        id: string,
-        token: string,
-        private eventCallbacks: eventCallbacks,
-    ) {
+    constructor(id: string, token: string) {
         this.id = id;
         this.token = token;
     }
 
-    queue(payload: string) {
-        this.currentQueue.push(payload);
+    queue(topic: string, payload: string) {
+        this.currentQueue.push({
+            topic,
+            payload,
+        });
         this.lastUpdated = new Date();
 
         if (this.requestCallback) {
@@ -34,12 +38,17 @@ export class Connection {
         }
     }
 
-    onQueue(callback: () => void) {
+    _onQueue(callback: () => void) {
         this.requestCallback = callback;
     }
 
-    getPayload(): string[] | null {
-        const queue = this.currentQueue;
+    _getPayload():
+        | {
+              topic: string;
+              payload: string;
+          }[]
+        | null {
+        const queue = [...this.currentQueue];
 
         if (queue.length === 0) {
             return null;
@@ -78,27 +87,27 @@ export class ConnectionManager {
 
     createConnection(id: string): Connection {
         const token = crypto.randomBytes(64).toString("hex");
-        const connection = new Connection(id, token, this.eventCallbacks);
+        const connection = new Connection(id, token);
         this.connections.push(connection);
         return connection;
     }
 
-    broadcast(data: string) {
+    broadcast(topic: string, data: string) {
         this.connections.forEach((connection) => {
-            connection.queue(data);
+            connection.queue(topic, data);
         });
     }
 
-    subscribe(event: string, callback: eventCallback) {
-        if (!this.eventCallbacks[event]) {
-            this.eventCallbacks[event] = [];
+    subscribe(topic: string, callback: eventCallback) {
+        if (!this.eventCallbacks[topic]) {
+            this.eventCallbacks[topic] = [];
         }
 
-        this.eventCallbacks[event].push(callback);
+        this.eventCallbacks[topic].push(callback);
     }
 
-    events(event: string): eventCallback[] {
-        return this.eventCallbacks[event] || [];
+    events(topic: string): eventCallback[] {
+        return this.eventCallbacks[topic] || [];
     }
 
     destroy() {

@@ -9,9 +9,9 @@ import { routes } from "./routes";
 
 class Server {
     app: Express = express();
-    connectionManager: ConnectionManager = new ConnectionManager();
+    private connectionManager: ConnectionManager = new ConnectionManager();
 
-    constructor(secret: string) {
+    constructor(secret: string, apiPath: string = "/") {
         this.app.use((req, res, next) => {
             const auth = req.headers.secret;
             if (auth === secret) {
@@ -31,15 +31,15 @@ class Server {
             next();
         });
 
-        this.app.use("/api", routes);
+        this.app.use(apiPath, routes);
     }
 
-    subscribe(event: string, callback: eventCallback) {
-        this.connectionManager.subscribe(event, callback);
+    subscribe(topic: string, callback: eventCallback) {
+        this.connectionManager.subscribe(topic, callback);
     }
 
-    broadcast(data: string) {
-        this.connectionManager.broadcast(data);
+    broadcast(topic: string, data: string) {
+        this.connectionManager.broadcast(topic, data);
     }
 
     getConnections(): Connection[] {

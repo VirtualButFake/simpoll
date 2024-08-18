@@ -32,10 +32,11 @@ function simpoll.new(server: string, secret: string)
 		server = server,
 		connection = nil,
 		secret = secret,
+		callbacks = {},
 	}, simpoll)
 end
 
-function simpoll.request(self: simpoll, endpoint: string, data: any?, needsAuth: boolean?): any?
+function simpoll._request(self: simpoll, endpoint: string, data: any?, needsAuth: boolean?): any?
 	if not self.connection and needsAuth ~= false then
 		warn("No connection established")
 		return
@@ -70,15 +71,18 @@ end
 
 function simpoll._poll(self: simpoll)
 	while self.connection do
-		local response = self:request(ENDPOINTS.SUBSCRIBE, {
+		local response = self:_request(ENDPOINTS.SUBSCRIBE, {
 			token = self.connection.token,
 		}, true)
 
 		if response then
 			if response.success then
 				for _, payload in response.payload do
-					if self.callback then
-						self.callback(payload)
+					local topic = payload.topic
+					local data = payload.data
+
+					if self.callbacks[topic] then
+						self.callbacks[topic](data)
 					end
 				end
 			elseif response.message ~= "Timeout" and self.connection then
@@ -101,7 +105,7 @@ function simpoll.connect(self: simpoll, id: string?, retry: (boolean | number)?)
 
 	-- contact the server
 	id = id or game.JobId ~= "" and game.JobId or HttpService:GenerateGUID(false)
-	local response = self:request(ENDPOINTS.CONNECT, { id = id }, false)
+	local response = self:_request(ENDPOINTS.CONNECT, { id = id }, false)
 
 	if response and response.success then
 		connection.id = id
@@ -134,7 +138,7 @@ function simpoll.disconnect(self: simpoll)
 		return
 	end
 
-	local response = self:request(ENDPOINTS.DISCONNECT, {
+	local response = self:_request(ENDPOINTS.DISCONNECT, {
 		token = self.connection.token,
 	}, true)
 
@@ -147,15 +151,15 @@ function simpoll.disconnect(self: simpoll)
 	return false
 end
 
-function simpoll.send(self: simpoll, event: string, data: any)
+function simpoll.send(self: simpoll, topic: string, data: any): boolean
 	if not self.connection then
 		warn("No connection established")
-		return
+		return false
 	end
 
-	local response = self:request(ENDPOINTS.SEND, {
+	local response = self:_request(ENDPOINTS.SEND, {
 		token = self.connection.token,
-		event = event,
+		event = topic,
 		data = data,
 	}, true)
 
@@ -167,13 +171,13 @@ function simpoll.send(self: simpoll, event: string, data: any)
 	return false
 end
 
-function simpoll.onMessage(self: simpoll, callback: (data: string) -> ())
+function simpoll.onMessage(self: simpoll, topic: string, callback: (data: string) -> ())
 	if not self.connection then
 		warn("No connection established")
 		return
 	end
 
-	self.callback = callback
+	self.callbacks[topic] = callback
 end
 
 export type simpoll = typeof(setmetatable(
@@ -181,7 +185,7 @@ export type simpoll = typeof(setmetatable(
 		server: string,
 		connection: connection?,
 		secret: string,
-		callback: (string) -> any?,
+		callbacks: { [string]: (string) -> any? },
 	},
 	simpoll
 ))
