@@ -25,7 +25,7 @@ It features 2 main components:
 
 ### Roblox
 
-1. Add the latest version of the [library via Wally](https://wally.run/package/virtualbutfake/simpoll) to your `wally.toml` file
+1. Add the latest version of the [library via Wally](https://wally.run/package/virtualbutfake/simpoll) to your `wally.toml` file and install it through `wally install` or a comparable command.
 2. To get started, use the following code:
 
 ```lua
