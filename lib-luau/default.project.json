@@ -1,0 +1,6 @@
+{
+    "name": "simpoll",
+    "tree": {
+        "$path": "dist"
+    }
+}

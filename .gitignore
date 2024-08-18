@@ -1,0 +1,31 @@
+# node modules
+node_modules
+# build path
+dist
+# environmental variables
+.env
+# yarn error log
+yarn-error.log
+# vscode config
+.vscode
+#coverage
+coverage
+
+# Project place file
+/lib-luau/build.rbxl
+/lib-luau/build.rbxm
+
+# Roblox Studio lock files
+/lib-luau/*.rbxlx.lock
+/lib-luau/*.rbxl.lock
+
+# Wally files
+/lib-luau/[Pp]ackages
+/lib-luau/[Ss]erverPackages
+
+# DarkLua builds
+/lib-luau/dist
+/lib-luau/temp
+
+# sourcemap
+lib-luau/sourcemap.json

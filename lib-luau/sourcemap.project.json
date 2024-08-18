@@ -1,0 +1,10 @@
+{
+    "name": "simpoll",
+    "tree": {
+        "$className": "Folder",
+        "simpoll": {
+            "$path": "src"
+        },
+        "$path": "packages"
+    }
+}

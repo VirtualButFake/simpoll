@@ -1,0 +1,15 @@
+{
+    "name": "simpoll",
+    "tree": {
+        "$className": "DataModel",
+        "ReplicatedStorage": {
+            "Packages": {
+                "$className": "Folder",
+                "simpoll": {
+                    "$path": "dist"
+                },
+                "$path": "packages"
+            }
+        }
+    }
+}
