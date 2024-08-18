@@ -1,3 +1,4 @@
 import Server from "./server";
+import Logger from "./logger";
 
-export default Server;
+export { Server, Logger };

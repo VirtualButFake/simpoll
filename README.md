@@ -70,6 +70,13 @@ setInterval(() => {
 }, 1000);
 ```
 
+3. (optional) In order to see debug logs, set the log level as follows:
+
+```typescript
+import { Logger } from "simpoll";
+Logger.level = "debug";
+```
+
 ## Luau Documentation
 
 ### `simpoll.new`

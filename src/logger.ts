@@ -4,7 +4,7 @@ import chalk from "chalk";
 const logger = winston.createLogger({
     transports: [
         new winston.transports.Console({
-            level: "debug",
+            level: "info",
             format: winston.format.combine(
                 winston.format((info) => {
                     const date = new Date();
