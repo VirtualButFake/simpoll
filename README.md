@@ -30,14 +30,14 @@ It features 2 main components:
 
 ```lua
 local simpoll = require(path.to.simpoll)
-local poll = simpoll.new("https://your.simpoll.server", "your_very_safe_seceret_here")
+local poll = simpoll.new("https://your.simpoll.server", "your_very_safe_secret_here")
 
 if poll:connect() then
-	poll:onMessage(function(data)
+	poll:onMessage("topicClient", function(data)
 		print(data)
 	end)
 
-	poll:send("topic", "Hello, world!")
+	poll:send("topicServer", "Hello, world!")
 end
 ```
 
@@ -56,7 +56,7 @@ import { Server } from "simpoll";
 
 const server = new Server("your_very_safe_secret_here");
 
-server.subscribe("topic", (connectionId, data) => {
+server.subscribe("topicClient", (connectionId, data) => {
     console.log(`Received data from ${connectionId}: ${data}`);
 });
 
@@ -64,6 +64,10 @@ server.subscribe("topic", (connectionId, data) => {
 server.listen(3000, () => {
     console.log(`Server listening!`);
 });
+
+setInterval(() => {
+    server.broadcast("topicServer", "Hello, world!");
+}, 1000);
 ```
 
 ## Luau Documentation
