@@ -9,7 +9,7 @@ import { routes } from "./routes";
 
 class Server {
     app: Express = express();
-    private connectionManager: ConnectionManager = new ConnectionManager();
+    private connectionManager = new ConnectionManager();
 
     constructor(secret: string, apiPath: string = "/") {
         this.app.use((req, res, next) => {
@@ -38,19 +38,25 @@ class Server {
         this.connectionManager.subscribe(topic, callback);
     }
 
-    broadcast(topic: string, data: string) {
+    onConnection(callback: (connection: Connection) => void) {
+        this.connectionManager._onConnection = callback;
+    }
+
+    onDisconnect(callback: (connection: Connection) => void) {
+        this.connectionManager._onDisconnect = callback;
+    }
+
+    broadcast(topic: string, data: any) {
         this.connectionManager.broadcast(topic, data);
     }
 
-    getConnections(): Connection[] {
+    connections(): Connection[] {
         return this.connectionManager.connections;
     }
 
-    /* eslint-disable @typescript-eslint/no-explicit-any */
     listen: Application["listen"] = ((...args: any[]) => {
         this.app.listen(...args);
     }) as any;
-    /* eslint-enable */
 }
 
 export default Server;

@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import logger from "./logger";
 
 const CLEANUP_THRESHOLD = 1000 * 60;
 
@@ -18,29 +19,30 @@ export class Connection {
 
     lastUpdated: Date = new Date();
 
-    private requestCallback: (() => void) | null = null;
-    private currentQueue: queueItem[] = [];
-
     constructor(id: string, token: string) {
         this.id = id;
         this.token = token;
     }
 
-    queue(topic: string, payload: string) {
-        this.currentQueue.push({
+    queue(topic: string, payload: any) {
+        this._currentQueue.push({
             topic,
-            payload,
+            payload: JSON.stringify(payload),
         });
+
         this.lastUpdated = new Date();
 
-        if (this.requestCallback) {
-            this.requestCallback();
+        if (this._requestCallback) {
+            this._requestCallback();
         }
     }
 
-    _onQueue(callback: () => void) {
-        this.requestCallback = callback;
+    destroy() {
+        this._requestCallback = null;
     }
+
+    _requestCallback: (() => void) | null = null;
+    _currentQueue: queueItem[] = [];
 
     _getPayload():
         | {
@@ -48,18 +50,14 @@ export class Connection {
               payload: string;
           }[]
         | null {
-        const queue = [...this.currentQueue];
+        const queue = [...this._currentQueue];
 
         if (queue.length === 0) {
             return null;
         }
 
-        this.currentQueue = [];
+        this._currentQueue = [];
         return queue;
-    }
-
-    destroy() {
-        this.requestCallback = null;
     }
 }
 
@@ -77,6 +75,7 @@ export class ConnectionManager {
                 const allowed = diff < CLEANUP_THRESHOLD;
 
                 if (!allowed) {
+                    logger.debug(`Destroying connection ${connection.id}`);
                     connection.destroy();
                 }
 
@@ -92,7 +91,7 @@ export class ConnectionManager {
         return connection;
     }
 
-    broadcast(topic: string, data: string) {
+    broadcast(topic: string, data: any) {
         this.connections.forEach((connection) => {
             connection.queue(topic, data);
         });
@@ -119,4 +118,9 @@ export class ConnectionManager {
             connection.destroy();
         }
     }
+
+    _onConnection:
+        | ((connection: Connection, overwroteExisting: boolean) => void)
+        | null = null;
+    _onDisconnect: ((connection: Connection) => void) | null = null;
 }

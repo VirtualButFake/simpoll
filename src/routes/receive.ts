@@ -3,6 +3,15 @@ import logger from "../logger";
 
 export const receiveRouter = Router();
 
+function parseData(data: string): any {
+    try {
+        return JSON.parse(data);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (e) {
+        return data;
+    }
+}
+
 receiveRouter.post("/receive", (req, res) => {
     const connectionManager = req.connectionManager;
 
@@ -25,7 +34,7 @@ receiveRouter.post("/receive", (req, res) => {
             });
         }
 
-        const data = req.body.data;
+        const data = parseData(req.body.data);
         const event = req.body.event;
 
         const events = connectionManager.events(event);

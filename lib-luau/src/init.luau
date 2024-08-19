@@ -2,12 +2,28 @@ local HttpService = game:GetService("HttpService")
 local simpoll = {}
 simpoll.__index = simpoll
 
+local signal = require("@packages/signal")
+
+local availablePollers: {
+	[string]: simpoll,
+} = {}
+
 local ENDPOINTS = {
 	CONNECT = "connect",
 	SUBSCRIBE = "subscribe",
 	SEND = "receive",
 	DISCONNECT = "disconnect",
 }
+
+local function parseMaybeJson(data: string): any
+	local isDecodingSuccessful, decoded = pcall(HttpService.JSONDecode, HttpService, data)
+
+	if isDecodingSuccessful then
+		return decoded
+	end
+
+	return data
+end
 
 local function parseResponseError(response: any): string
 	if typeof(response) == "table" then
@@ -27,36 +43,68 @@ local function mergeUrl(base: string, ...: string): string
 	return url
 end
 
-function simpoll.new(server: string, secret: string)
-	return setmetatable({
-		server = server,
-		connection = nil,
-		secret = secret,
-		callbacks = {},
-	}, simpoll)
+function simpoll.new(server: string, secret: string, id: string?): subConnection
+	local name = id or game.JobId ~= "" and game.JobId or HttpService:GenerateGUID(false)
+	local poller = availablePollers[name]
+
+	if not poller then
+		poller = setmetatable({
+			server = server,
+			connection = nil,
+			secret = secret,
+			subConnections = {},
+			id = name,
+		}, simpoll) :: simpoll
+	end
+
+	local subConnection = setmetatable({
+		events = {},
+		parent = poller,
+		destroy = function(self: subConnection)
+			for topic, event in self.events do
+				event:Destroy()
+				self.events[topic] = nil
+			end
+
+			table.remove(poller.subConnections, table.find(poller.subConnections, self))
+
+			if #poller.subConnections == 0 then
+				availablePollers[poller.id] = nil
+				poller:destroy()
+			end
+		end,
+	}, {
+		__index = poller,
+	}) :: subConnection
+
+	table.insert(poller.subConnections, subConnection)
+	availablePollers[poller.id] = poller
+
+	return subConnection
 end
 
 function simpoll._request(self: simpoll, endpoint: string, data: any?, needsAuth: boolean?): any?
 	if not self.connection and needsAuth ~= false then
-		warn("No connection established")
+		warn("[SIMPOLL] No connection established")
 		return
 	end
 
 	local isRequestSuccessful, response = pcall(function()
+		local headers = {
+			["Authorization"] = self.connection and self.connection.token or nil,
+			["Secret"] = self.secret,
+		}
+
 		return HttpService:PostAsync(
 			mergeUrl(self.server, endpoint),
 			HttpService:JSONEncode(data),
 			Enum.HttpContentType.ApplicationJson,
 			false,
-			{
-				["Authorization"] = self.connection and self.connection.token or nil,
-				["Secret"] = self.secret,
-			}
+			next(headers) and headers or nil
 		)
 	end)
 
 	if not isRequestSuccessful then
-		warn(`Failed to request server: {parseResponseError(response)}`)
 		return response
 	end
 
@@ -79,19 +127,20 @@ function simpoll._poll(self: simpoll)
 			if response.success then
 				for _, payload in response.payload do
 					local topic = payload.topic
-					local data = payload.data
+					local data = parseMaybeJson(payload.payload)
 
-					if self.callbacks[topic] then
-						self.callbacks[topic](data)
+					for _, subConnection in self.subConnections do
+						if subConnection.events[topic] then
+							subConnection.events[topic]:Fire(data)
+						end
 					end
 				end
 			elseif response.message ~= "Timeout" and self.connection then
-				warn(`Failed to poll server, reconnecting: {parseResponseError(response)}`)
+				warn(`[SIMPOLL] Failed to poll server, reconnecting: {parseResponseError(response)}`)
 
-				-- throw away the connection
-				-- try to reconnect
-				self:disconnect()
-				self:connect()
+				-- We deliberately do not disconnect here, as we want to keep missed queue messages on the server
+				self.connection = nil
+				self:connect(true, true)
 				return
 			end
 		end
@@ -100,19 +149,48 @@ function simpoll._poll(self: simpoll)
 	end
 end
 
-function simpoll.connect(self: simpoll, id: string?, retry: (boolean | number)?)
-	local connection = {}
+function simpoll._disconnect(self: simpoll)
+	if not self.connection then
+		warn("[SIMPOLL] No connection established")
+		return
+	end
 
-	-- contact the server
-	id = id or game.JobId ~= "" and game.JobId or HttpService:GenerateGUID(false)
-	local response = self:_request(ENDPOINTS.CONNECT, { id = id }, false)
+	local response = self:_request(ENDPOINTS.DISCONNECT, {
+		token = self.connection.token,
+	}, true)
+
+	self.connection = nil
 
 	if response and response.success then
-		connection.id = id
-		connection.token = response.token
-		self.connection = connection
+		return true
+	end
 
-		task.spawn(simpoll._poll, self)
+	warn(`[SIMPOLL] Failed to disconnect from server: {parseResponseError(response)}`)
+	return false
+end
+
+function simpoll.connect(self: simpoll | subConnection, retry: (boolean | number)?, overwrite: boolean?): boolean
+	if self.connection then
+		return true
+	end
+
+	local connection = {}
+
+	local response = self:_request(ENDPOINTS.CONNECT, { id = self.id, overwrite = overwrite }, false)
+
+	if response and response.success then
+		connection.id = self.id
+		connection.token = response.token
+
+		if self.parent then
+			local subConnection = self :: subConnection
+			subConnection.parent.connection = connection
+			task.spawn(simpoll._poll, self.parent)
+		else
+			local simpollInstance = self :: simpoll
+			simpollInstance.connection = connection
+			task.spawn(simpoll._poll, self)
+		end
 
 		return true
 	end
@@ -124,36 +202,17 @@ function simpoll.connect(self: simpoll, id: string?, retry: (boolean | number)?)
 
 		if retry == true or retry > 0 then
 			task.wait(1)
-			return self:connect(id, retry)
+			return self:connect(retry)
 		end
 	end
 
-	warn(`Failed to connect to server: {parseResponseError(response)}`)
+	warn(`[SIMPOLL] Failed to connect to server: {parseResponseError(response)}`)
 	return false
 end
 
-function simpoll.disconnect(self: simpoll)
+function simpoll.send(self: subConnection, topic: string, data: any, retry: boolean?): boolean
 	if not self.connection then
-		warn("No connection established")
-		return
-	end
-
-	local response = self:_request(ENDPOINTS.DISCONNECT, {
-		token = self.connection.token,
-	}, true)
-
-	if response and response.success then
-		self.connection = nil
-		return true
-	end
-
-	warn(`Failed to disconnect from server: {parseResponseError(response)}`)
-	return false
-end
-
-function simpoll.send(self: simpoll, topic: string, data: any): boolean
-	if not self.connection then
-		warn("No connection established")
+		warn("[SIMPOLL] No connection established")
 		return false
 	end
 
@@ -167,17 +226,41 @@ function simpoll.send(self: simpoll, topic: string, data: any): boolean
 		return true
 	end
 
-	warn(`Failed to send data to server: {parseResponseError(response)}`)
+	warn(`[SIMPOLL] Failed to send data to server: {parseResponseError(response)}`)
+
+	if retry then
+		task.delay(1, function()
+			self:send(topic, data, retry)
+		end)
+	end
+
 	return false
 end
 
-function simpoll.onMessage(self: simpoll, topic: string, callback: (data: string) -> ())
+function simpoll.onMessage(self: subConnection, topic: string, callback: (data: string) -> ()): signal.Connection?
 	if not self.connection then
-		warn("No connection established")
-		return
+		warn("[SIMPOLL] No connection established")
+		return nil
 	end
 
-	self.callbacks[topic] = callback
+	if not self.events[topic] then
+		self.events[topic] = signal.new()
+	end
+
+	return self.events[topic]:Connect(callback)
+end
+
+function simpoll.destroy(self: simpoll)
+	if self.connection then
+		self:_disconnect()
+	end
+
+	for _, subConnection in self.subConnections do
+		for i, event in subConnection.events do
+			event:Destroy()
+			subConnection.events[i] = nil
+		end
+	end
 end
 
 export type simpoll = typeof(setmetatable(
@@ -185,9 +268,21 @@ export type simpoll = typeof(setmetatable(
 		server: string,
 		connection: connection?,
 		secret: string,
-		callbacks: { [string]: (string) -> any? },
+		id: string,
+		subConnections: { subConnection },
 	},
 	simpoll
+))
+
+export type subConnection = typeof(setmetatable(
+	{} :: {
+		events: { [string]: signal.Signal<string> },
+		destroy: (self: subConnection) -> (),
+		parent: simpoll,
+	},
+	{
+		__index = simpoll,
+	}
 ))
 
 export type connection = {
