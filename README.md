@@ -133,7 +133,7 @@ If polling fails, the server immediately tries to reconnect using `overwrite` se
 ### `simpoll:send`
 
 ```luau
-simpoll:send(topic: string, data: any): boolean
+simpoll:send(topic: string, data: any, retry: boolean?): boolean
 ```
 
 Sends a message to the simpoll server with the given topic. Returns whether the message was sent successfully.
