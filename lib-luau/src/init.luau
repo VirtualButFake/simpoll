@@ -1,12 +1,8 @@
-local HttpService = game:GetService("HttpService")
 local simpoll = {}
 simpoll.__index = simpoll
 
+local HttpService = game:GetService("HttpService")
 local signal = require("@packages/signal")
-
-local availablePollers: {
-	[string]: simpoll,
-} = {}
 
 local ENDPOINTS = {
 	CONNECT = "connect",
@@ -14,6 +10,10 @@ local ENDPOINTS = {
 	SEND = "receive",
 	DISCONNECT = "disconnect",
 }
+
+local availablePollers: {
+	[string]: simpoll,
+} = {}
 
 local function parseMaybeJson(data: string): any
 	local isDecodingSuccessful, decoded = pcall(HttpService.JSONDecode, HttpService, data)
