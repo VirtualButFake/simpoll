@@ -39,8 +39,8 @@ A light-weight, simple bidirectional long-polling library for Roblox.
     - [``Connection.token``](#connectiontoken)
     - [``Connection.lastUpdated``](#connectionlastupdated)
     - [``Connection.queue``](#connectionqueue)
-  - [Changelog](#changelog)
-  - [License](#license)
+- [Changelog](#changelog)
+- [License](#license)
 
 
 # What is simpoll?
@@ -256,10 +256,10 @@ connection.queue(topic: string, payload: string): void
 
 Adds data to the connection's queue. This data will be sent to the client immediately if the client is currently polling, and will otherwise be sent when the client next polls.
 
-## Changelog
+# Changelog
 
 The changelog can be found [here](CHANGELOG.md).
 
-## License
+# License
 
 This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/virtualbutfake/fusion-autocomplete/blob/master/LICENSE.md) file for details.
