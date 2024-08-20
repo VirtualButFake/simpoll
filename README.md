@@ -126,7 +126,7 @@ Note that this function does not return an actual `simpoll` object, but instead 
 simpoll:connect(retry: (boolean | number)?, overwrite: boolean?): boolean
 ```
 
-Connects to the simpoll server. Returns whether the connection was successful. If this function succeeds, the client immediately starts polling for messages. If retry is set to `true`, the client will automatically attempt to reconnect if the connection is lost. If retry is set to a number, the client try that many times to reconnect before giving up. If overwrite is set to `true`, the client will overwrite the existing connection with this ID if one exists, transferring over the current queue and request callback.
+Connects to the simpoll server. Returns whether the connection was successful. If this function succeeds, the client immediately starts polling for messages. If retry is set to `true`, the client will automatically attempt to reconnect if the connection is not successful. If retry is set to a number, the client tries that many times to reconnect before giving up. If overwrite is set to `true`, the client will overwrite the existing connection with this ID if one exists, transferring over the current queue and request callback.
 
 If polling fails, the server immediately tries to reconnect using `overwrite` set to true. This will refresh the connection and ensure that the client is always connected.
 
