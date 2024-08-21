@@ -1,3 +1,7 @@
+# 0.2.2
+
+-   I forgot to build the npm package before publishing... oops
+
 # 0.2.1
 
 -   Improve typing
