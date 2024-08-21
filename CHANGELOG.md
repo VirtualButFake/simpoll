@@ -1,3 +1,8 @@
+# 0.2.1
+
+-   Improve typing
+-   `Server.subscribe`'s callback now returns the connection instead of it's id
+
 # 0.2.0
 
 -   Update log level updating guide

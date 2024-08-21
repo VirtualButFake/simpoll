@@ -8,7 +8,7 @@ type queueItem = {
     payload: string;
 };
 
-export type eventCallback = (id: string, data: string) => void;
+export type eventCallback = (connection: Connection, data: string) => void;
 type eventCallbacks = {
     [key: string]: eventCallback[];
 };

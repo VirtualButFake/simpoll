@@ -39,8 +39,8 @@ A light-weight, simple bidirectional long-polling library for Roblox.
     - [``Connection.token``](#connectiontoken)
     - [``Connection.lastUpdated``](#connectionlastupdated)
     - [``Connection.queue``](#connectionqueue)
-  - [Changelog](#changelog)
-  - [License](#license)
+- [Changelog](#changelog)
+- [License](#license)
 
 
 # What is simpoll?
@@ -87,8 +87,8 @@ import { Server } from "simpoll";
 
 const server = new Server("your_very_safe_secret_here");
 
-server.subscribe("topicClient", (connectionId, data) => {
-    console.log(`Received data from ${connectionId}: ${data}`);
+server.subscribe("topicClient", (connection, data) => {
+    console.log(`Received data from ${connection.id}: ${data}`);
 });
 
 // Any arguments that express.listen accepts can be passed here.
@@ -133,7 +133,7 @@ If polling fails, the server immediately tries to reconnect using `overwrite` se
 ### `simpoll:send`
 
 ```luau
-simpoll:send(topic: string, data: any): boolean
+simpoll:send(topic: string, data: string | json): boolean
 ```
 
 Sends a message to the simpoll server with the given topic. Returns whether the message was sent successfully.
@@ -141,7 +141,7 @@ Sends a message to the simpoll server with the given topic. Returns whether the 
 ### `simpoll:onMessage`
 
 ```luau
-simpoll:onMessage(topic: string, callback: (data: string) -> ()): signal.Connection
+simpoll:onMessage(topic: string, callback: (data: json | string) -> ()): signal.Connection
 ```
 
 Sets a callback to be called when a message is received from the simpoll server with the given topic. The callback should take a single argument, which is the data received from the server.
@@ -171,7 +171,7 @@ API path is optional and defaults to `/`.
 ### ``Server.subscribe``
 
 ```typescript
-server.subscribe(topic: string, callback: (id: string, data: string) => void)
+server.subscribe(topic: string, callback: (connection: Connection, data: any) => void)
 ```
 
 Subscribes to a topic. The callback will be called when a message is received from the client. The callback should take two arguments: the connection ID and the data received from the client.
@@ -179,7 +179,7 @@ Subscribes to a topic. The callback will be called when a message is received fr
 ### ``Server.broadcast``
 
 ```typescript
-server.broadcast(topic: string, data: string)
+server.broadcast(topic: string, data: any)
 ```
 
 Broadcasts a message to all connected clients, with the given topic.
@@ -256,10 +256,10 @@ connection.queue(topic: string, payload: string): void
 
 Adds data to the connection's queue. This data will be sent to the client immediately if the client is currently polling, and will otherwise be sent when the client next polls.
 
-## Changelog
+# Changelog
 
 The changelog can be found [here](CHANGELOG.md).
 
-## License
+# License
 
 This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/virtualbutfake/fusion-autocomplete/blob/master/LICENSE.md) file for details.

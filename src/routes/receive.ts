@@ -44,7 +44,7 @@ receiveRouter.post("/receive", (req, res) => {
         );
 
         if (events) {
-            events.forEach((callback) => callback(connection.id, data));
+            events.forEach((callback) => callback(connection, data));
         }
 
         return res.send({
