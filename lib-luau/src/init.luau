@@ -237,7 +237,11 @@ function simpoll.send(self: subConnection, topic: string, data: string | json, r
 	return false
 end
 
-function simpoll.onMessage(self: subConnection, topic: string, callback: (data: string | json) -> ()): signal.Connection?
+function simpoll.onMessage(
+	self: subConnection,
+	topic: string,
+	callback: (data: string | json) -> ()
+): signal.Connection?
 	if not self.connection then
 		warn("[SIMPOLL] No connection established")
 		return nil
@@ -264,7 +268,7 @@ function simpoll.destroy(self: simpoll)
 end
 
 type json = {
-    [string | number]: json | string | number | boolean | nil,
+	[string | number]: json | string | number | boolean | nil,
 }
 
 export type simpoll = typeof(setmetatable(
