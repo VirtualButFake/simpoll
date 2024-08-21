@@ -1,3 +1,7 @@
+# 0.2.3
+
+-   `data` in `eventCallback` is now typed as `any`, to allow the user to specify their own types
+
 # 0.2.2
 
 -   I forgot to build the npm package before publishing... oops
