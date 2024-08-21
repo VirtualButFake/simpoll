@@ -16,12 +16,14 @@ type eventCallbacks = {
 export class Connection {
     id: string;
     token: string;
+    ip: string | null = null;
 
     lastUpdated: Date = new Date();
 
-    constructor(id: string, token: string) {
+    constructor(id: string, token: string, ip: string) {
         this.id = id;
         this.token = token;
+        this.ip = ip;
     }
 
     queue(topic: string, payload: any) {
@@ -84,9 +86,9 @@ export class ConnectionManager {
         }, 5000);
     }
 
-    createConnection(id: string): Connection {
+    createConnection(id: string, ip: string): Connection {
         const token = crypto.randomBytes(64).toString("hex");
-        const connection = new Connection(id, token);
+        const connection = new Connection(id, token, ip);
         this.connections.push(connection);
         return connection;
     }

@@ -25,7 +25,12 @@ connectRouter.post("/connect", (req, res) => {
         }
     }
 
-    const connection = connectionManager.createConnection(id);
+    // resolve ip - this can be proxied, so get the real IP
+    const ip = (req.headers["cf-connecting-ip"] ||
+        req.headers["x-forwarded-for"] ||
+        req.ip) as string;
+
+    const connection = connectionManager.createConnection(id, ip);
     logger.debug(`Established connection with ID: ${id}`);
 
     if (req.body.overwrite && foundConnection) {

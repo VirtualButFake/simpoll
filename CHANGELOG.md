@@ -1,3 +1,7 @@
+# 0.2.4
+
+-   Connections now contain an `ip` field to allow for more detailed logging. This value is resolved at connection time, and if connections come from multiple sources, only the first one will be logged.
+
 # 0.2.3
 
 -   `data` in `eventCallback` is now typed as `any`, to allow the user to specify their own types
