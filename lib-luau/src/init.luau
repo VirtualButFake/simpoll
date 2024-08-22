@@ -201,7 +201,7 @@ function simpoll.connect(self: simpoll | subConnection, retry: (boolean | number
 		end
 
 		if retry == true or retry > 0 then
-			task.wait(1)
+			task.wait(5)
 			return self:connect(retry)
 		end
 	end
@@ -229,7 +229,7 @@ function simpoll.send(self: subConnection, topic: string, data: string | json, r
 	warn(`[SIMPOLL] Failed to send data to server: {parseResponseError(response)}`)
 
 	if retry then
-		task.delay(1, function()
+		task.delay(5, function()
 			self:send(topic, data, retry)
 		end)
 	end

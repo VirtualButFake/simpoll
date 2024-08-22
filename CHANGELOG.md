@@ -1,3 +1,7 @@
+# 0.2.5
+
+-   Increase `retry` delay to 5 seconds to prevent rate limiting on Cloudflare's end
+
 # 0.2.4
 
 -   Connections now contain an `ip` field to allow for more detailed logging. This value is resolved at connection time, and if connections come from multiple sources, only the first one will be logged.
