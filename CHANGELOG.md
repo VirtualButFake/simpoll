@@ -1,3 +1,7 @@
+# 0.2.6
+
+-   `simpoll:send` will now retry if `retry` is true, even if no connection exists .
+
 # 0.2.5
 
 -   Increase `retry` delay to 5 seconds to prevent rate limiting on Cloudflare's end
