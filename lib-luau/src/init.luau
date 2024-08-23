@@ -214,11 +214,11 @@ function simpoll.send(self: subConnection, topic: string, data: string | json, r
 	if not self.connection then
 		warn("[SIMPOLL] No connection established")
 
-        if retry then
-            task.delay(5, function()
-                self:send(topic, data, retry)
-            end)
-        end
+		if retry then
+			task.delay(5, function()
+				self:send(topic, data, retry)
+			end)
+		end
 
 		return false
 	end
