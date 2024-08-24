@@ -1,3 +1,7 @@
+# 0.3.2
+
+-   Proper error handling on server side
+
 # 0.3.1
 
 -   Make `get` route async to allow for handling of promise callbacks

@@ -8,7 +8,7 @@ local ENDPOINTS = {
 	CONNECT = "connect",
 	SUBSCRIBE = "subscribe",
 	SEND = "receive",
-    GET = "get",
+	GET = "get",
 	DISCONNECT = "disconnect",
 }
 
@@ -246,35 +246,35 @@ function simpoll.send(self: subConnection, topic: string, data: string | json, r
 end
 
 function simpoll.get(self: subConnection, topic: string, data: string | json, retry: boolean?): (string | json)?
-    if not self.connection then
-        warn("[SIMPOLL] No connection established")
+	if not self.connection then
+		warn("[SIMPOLL] No connection established")
 
-        if retry then
-            task.delay(5, function()
-                self:get(topic, data, retry)
-            end)
-        end
+		if retry then
+			task.delay(5, function()
+				self:get(topic, data, retry)
+			end)
+		end
 
-        return
-    end
+		return
+	end
 
-    local response = self:_request(ENDPOINTS.GET, {
-        token = self.connection.token,
-        event = topic,
-        data = data,
-    }, true)
+	local response = self:_request(ENDPOINTS.GET, {
+		token = self.connection.token,
+		event = topic,
+		data = data,
+	}, true)
 
-    if response and response.success then
-        return parseMaybeJson(response.data)
-    end
+	if response and response.success then
+		return parseMaybeJson(response.data)
+	end
 
-    warn(`[SIMPOLL] Failed to get data from server: {parseResponseError(response)}`)
+	warn(`[SIMPOLL] Failed to get data from server: {parseResponseError(response)}`)
 
-    if retry then
-        task.delay(5, function()
-            self:get(topic, data, retry)
-        end)
-    end
+	if retry then
+		task.delay(5, function()
+			self:get(topic, data, retry)
+		end)
+	end
 end
 
 function simpoll.onMessage(

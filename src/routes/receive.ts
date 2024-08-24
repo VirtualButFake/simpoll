@@ -44,9 +44,9 @@ receiveRouter.post("/receive", (req, res) => {
         );
 
         if (events) {
-            events.forEach((callback) => {
+            events.forEach(async (callback) => {
                 try {
-                    callback(connection, data);
+                    await callback(connection, data);
                 } catch (e) {
                     logger.error(
                         `Error while processing callback for event ${event}: ${e}`,

@@ -44,12 +44,14 @@ getRouter.post("/get", async (req, res) => {
         );
 
         if (handler) {
-            let handlerResponse
+            let handlerResponse;
 
             try {
-                handlerResponse = await handler(connection, data)
+                handlerResponse = await handler(connection, data);
             } catch (e) {
-                logger.error(`Error while processing handler for event ${event}: ${e}`)
+                logger.error(
+                    `Error while processing handler for event ${event}: ${e}`,
+                );
                 return res.send({
                     success: false,
                     message: "Error while processing handler",
