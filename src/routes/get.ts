@@ -1,7 +1,7 @@
 import { Router } from "express";
 import logger from "../logger";
 
-export const receiveRouter = Router();
+export const getRouter = Router();
 
 function parseData(data: string): any {
     try {
@@ -12,7 +12,7 @@ function parseData(data: string): any {
     }
 }
 
-receiveRouter.post("/receive", (req, res) => {
+getRouter.post("/get", (req, res) => {
     const connectionManager = req.connectionManager;
 
     const connection = connectionManager.connections.find(
@@ -37,26 +37,34 @@ receiveRouter.post("/receive", (req, res) => {
         const data = parseData(req.body.data);
         const event = req.body.event;
 
-        const events = connectionManager.events(event);
+        const handler = connectionManager.handler(event);
 
         logger.debug(
-            `Received event from connection ${connection.id} on channel "${event}": ${JSON.stringify(data)}`,
+            `Received "get" event from connection ${connection.id} on channel "${event}": ${JSON.stringify(data)}`,
         );
 
-        if (events) {
-            events.forEach((callback) => {
-                try {
-                    callback(connection, data);
-                } catch (e) {
-                    logger.error(
-                        `Error while processing callback for event ${event}: ${e}`,
-                    );
-                }
+        if (handler) {
+            let handlerResponse
+
+            try {
+                handlerResponse = handler(connection, data)
+            } catch (e) {
+                logger.error(`Error while processing handler for event ${event}: ${e}`)
+                return res.send({
+                    success: false,
+                    message: "Error while processing handler",
+                });
+            }
+
+            return res.send({
+                success: true,
+                data: JSON.stringify(handlerResponse),
             });
         }
 
         return res.send({
             success: true,
+            message: "No handler found",
         });
     }
 

@@ -1,3 +1,9 @@
+# 0.3.0
+
+-   Add `simpoll:get`, which allows the client to request data from the server. While working with the library, I realized that I used a pattern where I used polling and `simpoll:send` to get data from the server, which couldn't really be implemented cleanly. This is a more elegant solution to that problem.
+-   Added `Server.registerHandler` to allow handling of get requests. Returned data will be serialized as JSON and sent to the client.
+-   Add error handling on the server side to prevent crashes when the client sends invalid data
+
 # 0.2.6
 
 -   `simpoll:send` will now retry if `retry` is true, even if no connection exists .

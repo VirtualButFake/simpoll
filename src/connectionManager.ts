@@ -9,8 +9,14 @@ type queueItem = {
 };
 
 export type eventCallback = (connection: Connection, data: any) => void;
+export type requestHandler = (connection: Connection, data: any) => any;
+
 type eventCallbacks = {
     [key: string]: eventCallback[];
+};
+
+type requestHandlers = {
+    [key: string]: requestHandler;
 };
 
 export class Connection {
@@ -66,6 +72,7 @@ export class Connection {
 export class ConnectionManager {
     connections: Connection[] = [];
     private eventCallbacks: eventCallbacks = {};
+    private requestHandlers: requestHandlers = {};
     private intervalId: NodeJS.Timeout | null = null;
 
     constructor() {
@@ -107,8 +114,16 @@ export class ConnectionManager {
         this.eventCallbacks[topic].push(callback);
     }
 
+    registerHandler(topic: string, callback: requestHandler) {
+        this.requestHandlers[topic] = callback;
+    }
+
     events(topic: string): eventCallback[] {
         return this.eventCallbacks[topic] || [];
+    }
+
+    handler(topic: string): requestHandler | null {
+        return this.requestHandlers[topic] || null;
     }
 
     destroy() {

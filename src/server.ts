@@ -4,6 +4,7 @@ import {
     Connection,
     ConnectionManager,
     eventCallback,
+    requestHandler,
 } from "./connectionManager";
 import { routes } from "./routes";
 
@@ -36,6 +37,10 @@ class Server {
 
     subscribe(topic: string, callback: eventCallback) {
         this.connectionManager.subscribe(topic, callback);
+    }
+
+    registerHandler(topic: string, callback: requestHandler) {
+        this.connectionManager.registerHandler(topic, callback);
     }
 
     onConnection(callback: (connection: Connection) => void) {
