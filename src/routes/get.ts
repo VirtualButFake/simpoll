@@ -12,7 +12,7 @@ function parseData(data: string): any {
     }
 }
 
-getRouter.post("/get", (req, res) => {
+getRouter.post("/get", async (req, res) => {
     const connectionManager = req.connectionManager;
 
     const connection = connectionManager.connections.find(
@@ -47,7 +47,7 @@ getRouter.post("/get", (req, res) => {
             let handlerResponse
 
             try {
-                handlerResponse = handler(connection, data)
+                handlerResponse = await handler(connection, data)
             } catch (e) {
                 logger.error(`Error while processing handler for event ${event}: ${e}`)
                 return res.send({

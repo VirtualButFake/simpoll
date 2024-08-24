@@ -1,3 +1,7 @@
+# 0.3.1
+
+-   Make `get` route async to allow for handling of promise callbacks
+
 # 0.3.0
 
 -   Add `simpoll:get`, which allows the client to request data from the server. While working with the library, I realized that I used a pattern where I used polling and `simpoll:send` to get data from the server, which couldn't really be implemented cleanly. This is a more elegant solution to that problem.
