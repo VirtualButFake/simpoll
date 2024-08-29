@@ -136,7 +136,7 @@ function simpoll._poll(self: simpoll)
 						end
 					end
 				end
-			elseif response.message ~= "Timeout" and self.connection then
+			elseif (response.message ~= "Timeout" or response == "HTTP 524") and self.connection then
 				warn(`[SIMPOLL] Failed to poll server, reconnecting: {parseResponseError(response)}`)
 
 				-- We deliberately do not disconnect here, as we want to keep missed queue messages on the server
@@ -275,6 +275,8 @@ function simpoll.get(self: subConnection, topic: string, data: string | json, re
 			self:get(topic, data, retry)
 		end)
 	end
+
+	return
 end
 
 function simpoll.onMessage(
