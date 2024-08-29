@@ -1,3 +1,7 @@
+# 0.3.4
+
+-   Typo in last update
+
 # 0.3.3
 
 -   Ignore warning about timeout when it is a different format to the expected one
