@@ -23,11 +23,13 @@ A light-weight, simple bidirectional long-polling library for Roblox.
     - [`simpoll.new`](#simpollnew)
     - [`simpoll:connect`](#simpollconnect)
     - [`simpoll:send`](#simpollsend)
+    - [`simpoll:get`](#simpollget)
     - [`simpoll:onMessage`](#simpollonmessage)
     - [`simpoll:destroy`](#simpolldestroy)
 - [TypeScript Documentation](#typescript-documentation)
   - [Server](#server)
     - [``Server.subscribe``](#serversubscribe)
+    - [``Server.registerHandler``](#serverregisterhandler)
     - [``Server.broadcast``](#serverbroadcast)
     - [``Server.connections``](#serverconnections)
     - [``Server.onConnection``](#serveronconnection)
@@ -138,6 +140,14 @@ simpoll:send(topic: string, data: string | json, retry: boolean?): boolean
 
 Sends a message to the simpoll server with the given topic. Returns whether the message was sent successfully. If `retry` is true, Simpoll keeps retrying every 5 seconds until a successful request occurs.
 
+### `simpoll:get`
+
+```luau
+simpoll:get(topic: string, data: string | json, retry: boolean?): boolean
+```
+
+Tries to get data from a server route (goes into callbacks defined with `registerHandler`). Returns the value the server returned.. If `retry` is true, Simpoll keeps retrying every 5 seconds until a successful request occurs.
+
 ### `simpoll:onMessage`
 
 ```luau
@@ -175,6 +185,14 @@ server.subscribe(topic: string, callback: (connection: Connection, data: any) =>
 ```
 
 Subscribes to a topic. The callback will be called when a message is received from the client. The callback should take two arguments: the connection ID and the data received from the client.
+
+### ``Server.registerHandler``
+
+```typescript
+server.registerHandler(topic: string, (connection: Connection, data: any) => any)
+```
+
+Register a handler for `get` requests from the client. Sent data is converted to JSON and will be deserialized automatically on the client.
 
 ### ``Server.broadcast``
 
